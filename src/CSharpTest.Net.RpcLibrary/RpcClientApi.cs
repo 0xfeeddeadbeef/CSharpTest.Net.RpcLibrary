@@ -2,9 +2,9 @@
 /* Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -27,12 +28,14 @@ namespace CSharpTest.Net.RpcLibrary
     [System.Diagnostics.DebuggerDisplay("{_handle} @{_binding}")]
     public class RpcClientApi : IDisposable
     {
-        /// <summary> The interface Id the client is connected to </summary>
+        /// <summary> The interface Id the client is connected to.</summary>
         public readonly Guid IID;
+
         private readonly RpcProtseq _protocol;
         private readonly string _binding;
         private readonly RpcHandle _handle;
         private bool _authenticated;
+
         /// <summary>
         /// Connects to the provided server interface with the given protocol and server:endpoint
         /// </summary>
@@ -46,6 +49,7 @@ namespace CSharpTest.Net.RpcLibrary
             _binding = StringBindingCompose(protocol, server, endpoint, null);
             Connect();
         }
+
         /// <summary>
         /// Disconnects the client and frees any resources.
         /// </summary>
@@ -59,7 +63,7 @@ namespace CSharpTest.Net.RpcLibrary
         /// </summary>
         public static NetworkCredential Anonymous
         {
-            get { return new NetworkCredential("ANONYMOUS LOGON", "", "NT_AUTHORITY"); }
+            get { return new NetworkCredential("ANONYMOUS LOGON", string.Empty, "NT_AUTHORITY"); }
         }
         /// <summary>
         /// Returns a constant NetworkCredential that represents the current Windows user
@@ -76,7 +80,7 @@ namespace CSharpTest.Net.RpcLibrary
             get { return _protocol; }
         }
         /// <summary>
-        /// Connects the client; however, this is a soft-connection and validation of 
+        /// Connects the client; however, this is a soft-connection and validation of
         /// the connection will not take place until the first call is attempted.
         /// </summary>
         private void Connect()
@@ -225,7 +229,7 @@ namespace CSharpTest.Net.RpcLibrary
                                                               RpcProtectionLevel AuthnLevel, RpcAuthentication AuthnSvc,
                                                               IntPtr p, uint AuthzSvc);
 
-        private static void BindingSetAuthInfo(RpcProtectionLevel level, RpcAuthentication[] authTypes, 
+        private static void BindingSetAuthInfo(RpcProtectionLevel level, RpcAuthentication[] authTypes,
             RpcHandle handle, string serverPrincipalName, NetworkCredential credentails)
         {
             if (credentails == null)
@@ -239,7 +243,7 @@ namespace CSharpTest.Net.RpcLibrary
             }
             else
             {
-                SEC_WINNT_AUTH_IDENTITY pSecInfo = new SEC_WINNT_AUTH_IDENTITY(credentails);
+                var pSecInfo = new SEC_WINNT_AUTH_IDENTITY(credentails);
                 foreach (RpcAuthentication atype in authTypes)
                 {
                     RpcError result = RpcBindingSetAuthInfo(handle.Handle, serverPrincipalName, level, atype, ref pSecInfo, 0);
@@ -278,7 +282,7 @@ namespace CSharpTest.Net.RpcLibrary
             int szResponse = 0;
             IntPtr response, result;
 
-            using (Ptr<byte[]> pInputBuffer = new Ptr<byte[]>(input))
+            using (var pInputBuffer = new Ptr<byte[]>(input))
             {
                 if (RpcApi.Is64BitProcess)
                 {
@@ -296,13 +300,13 @@ namespace CSharpTest.Net.RpcLibrary
                 }
                 else
                 {
-                    using (Ptr<Int32[]> pStack32 = new Ptr<Int32[]>(new Int32[10]))
+                    using (var pStack32 = new Ptr<int[]>(new int[10]))
                     {
                         pStack32.Data[0] = handle.Handle.ToInt32();
                         pStack32.Data[1] = input.Length;
                         pStack32.Data[2] = pInputBuffer.Handle.ToInt32();
-                        pStack32.Data[3] = pStack32.Handle.ToInt32() + (sizeof (int)*6);
-                        pStack32.Data[4] = pStack32.Handle.ToInt32() + (sizeof (int)*8);
+                        pStack32.Data[3] = pStack32.Handle.ToInt32() + (sizeof(int) * 6);
+                        pStack32.Data[4] = pStack32.Handle.ToInt32() + (sizeof(int) * 8);
                         pStack32.Data[5] = 0; //reserved
                         pStack32.Data[6] = 0; //output: int dwSizeResponse
                         pStack32.Data[8] = 0; //output: byte* lpResponse
